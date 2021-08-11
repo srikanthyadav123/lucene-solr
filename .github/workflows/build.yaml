@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    if: github.repository == 'unbxd/albus'
+    if: github.repository == 'unbxd/lucene-solr'
     runs-on: ubuntu-18.04
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
