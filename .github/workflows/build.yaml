@@ -77,8 +77,10 @@ jobs:
           fi
           echo ::set-output name=BUILD_TAG::$(echo $tag)  
 
+      - name: setup ant
+        run: mkdir -p /home/runner/.ant/lib ; ant ivy-bootstrap
+
       - name: Build binaries
-        if: github.event_name == 'release'
         env:
           TAG: ${{ github.event.release.tag_name }}
           BUILD_TAG: ${{ steps.extract_tag.outputs.BUILD_TAG }}
@@ -105,10 +107,10 @@ jobs:
           BUILD_TAG: ${{ steps.extract_tag.outputs.BUILD_TAG }}
         run: |
           cd $GITHUB_WORKSPACE
-          docker tag solr:$BUILD_TAG $ECR_URL/solr:$BUILD_TAG
+          docker tag solr:latest $ECR_URL/solr:$BUILD_TAG
           docker push $ECR_URL/solr:$BUILD_TAG
           if [ ! -z "$TAG" ]; then
-            docker tag solr:$BUILD_TAG $ECR_URL/solr:latest
+            docker tag solr:latest $ECR_URL/solr:latest
             docker push $ECR_URL/solr:latest
           fi
 
