@@ -105,7 +105,7 @@ jobs:
           BUILD_TAG: ${{ steps.extract_tag.outputs.BUILD_TAG }}
         run: |
           cd $GITHUB_WORKSPACE
-          docker tag solr:$BUILD_TAG $ECR_URL/$SERVICE:$BUILD_TAG
+          docker tag solr:$BUILD_TAG $ECR_URL/solr:$BUILD_TAG
           docker push $ECR_URL/solr:$BUILD_TAG
           if [ ! -z "$TAG" ]; then
             docker tag solr:$BUILD_TAG $ECR_URL/solr:latest
