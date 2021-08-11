@@ -25,7 +25,7 @@ jobs:
       ECR_URL: ${{ secrets.US_EAST_1_ECR_URL }}
       LATEST_TAG: latest
       # this needs to be updated on every release
-      SOLR_CURR_VERSION: 6.6.10
+      SOLR_CURR_VERSION: 6.6.11
     steps:
       - uses: actions/checkout@v2
 
