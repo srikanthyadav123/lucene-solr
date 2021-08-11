@@ -1,0 +1,129 @@
+name: solr
+
+on:
+  push:
+    branches:
+      - "unx_branch_6_6"
+  pull_request:
+    branches:
+      - "unx_branch_6_6"
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    if: github.repository == 'unbxd/albus'
+    runs-on: ubuntu-18.04
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      GIT_HUB_USER: ${{ secrets.PLATFORM_BOT_GITHUB_USER }}
+      GIT_HUB_TOKEN: ${{ secrets.PLATFORM_BOT_GITHUB_TOKEN }}
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      ECR_URL: ${{ secrets.US_EAST_1_ECR_URL }}
+      LATEST_TAG: latest
+      # this needs to be updated on every release
+      SOLR_CURR_VERSION: 6.6.10
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 1.8
+        id: setup-jdk-1-8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION}}
+     
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Cache Maven packages
+        id: maven-cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          # invalidated on changes to pom.xml
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m
+        
+      - name: Setup Maven repository
+        id: configure-maven-settings
+        run: cp $GITHUB_WORKSPACE/.maven.settings.xml $HOME/.m2/settings.xml
+      
+      - name: extract build tag
+        id: extract_tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          TAG=${{ github.event.release.tag_name }}
+          tag="PR_${GITHUB_ACTOR}_${GITHUB_HEAD_REF}"
+          if [ -z "$GITHUB_HEAD_REF" ]; then
+              tag=latest
+              if [ -n "$TAG" ]; then
+                  tag=$TAG
+              fi
+          else
+              tag="PR_${GITHUB_ACTOR}_${GITHUB_HEAD_REF}";
+          fi
+          echo ::set-output name=BUILD_TAG::$(echo $tag)  
+
+      - name: Build binaries
+        if: github.event_name == 'release'
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          BUILD_TAG: ${{ steps.extract_tag.outputs.BUILD_TAG }}
+        run: |
+          ./scripts/build.sh
+          cd solr
+          if [ -n "$TAG" ]; then
+            echo "overwriting current version with build tag"
+            SOLR_CURR_VERSION=${BUILD_TAG//v/};
+            echo $SOLR_CURR_VERSION
+          fi
+          docker build --build-arg SOLR_ARG_VERSION=${SOLR_CURR_VERSION}-unbxd -t solr:latest .
+
+      - name: Push binaries
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          BUILD_TAG: ${{ steps.extract_tag.outputs.BUILD_TAG }}
+        run: if [ -n "$TAG" ]; then $GITHUB_WORKSPACE/scripts/push_to_aws.sh; fi
+
+      - name: Push Image
+        id: image-push
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          BUILD_TAG: ${{ steps.extract_tag.outputs.BUILD_TAG }}
+        run: |
+          cd $GITHUB_WORKSPACE
+          docker tag solr:$BUILD_TAG $ECR_URL/$SERVICE:$BUILD_TAG
+          docker push $ECR_URL/solr:$BUILD_TAG
+          if [ ! -z "$TAG" ]; then
+            docker tag solr:$BUILD_TAG $ECR_URL/solr:latest
+            docker push $ECR_URL/solr:latest
+          fi
+
+      - name: Publish to GitHub Packages
+        id: push-artifact
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          BUILD_TAG: ${{ steps.extract_tag.outputs.BUILD_TAG }}
+        run: |
+          if [ ! -z "$TAG" ]; then
+             SOLR_CURR_VERSION=${BUILD_TAG//v/};
+             echo "Deploying Maven artifacts for tagged build $SOLR_CURR_VERSION"
+             ant clean -Dversion=$SOLR_BASE_VERSION -Dm2.repository.id=github -Dm2.repository.url=https://maven.pkg.github.com/unbxd/artifacts generate-maven-artifacts
+          else 
+             echo "Deploying Maven artifacts for non-tagged build(snapshots)"
+             ant clean -Dm2.repository.id=github -Dm2.repository.url=https://maven.pkg.github.com/unbxd/artifacts generate-maven-artifacts
+          fi
+

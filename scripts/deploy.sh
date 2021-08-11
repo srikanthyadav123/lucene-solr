@@ -2,7 +2,7 @@
 
 # Vars
 ROOT_DIRECTORY="$PWD"
-MAVEN_SETTINGS="$PWD/.travis.settings.xml"
+MAVEN_SETTINGS="$PWD/.maven.settings.xml"
 SOLR_BASE_VERSION=${TRAVIS_TAG//v/}
 
 # Echo For DEBUG
