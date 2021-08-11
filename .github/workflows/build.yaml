@@ -98,6 +98,7 @@ jobs:
         env:
           TAG: ${{ github.event.release.tag_name }}
           BUILD_TAG: ${{ steps.extract_tag.outputs.BUILD_TAG }}
+          S3_PATH: ${{ secrets.S3_PATH }}
         run: if [ -n "$TAG" ]; then $GITHUB_WORKSPACE/scripts/push_to_aws.sh; fi
 
       - name: Push Image
@@ -123,7 +124,7 @@ jobs:
           if [ ! -z "$TAG" ]; then
              SOLR_CURR_VERSION=${BUILD_TAG//v/};
              echo "Deploying Maven artifacts for tagged build $SOLR_CURR_VERSION"
-             ant clean -Dversion=$SOLR_BASE_VERSION -Dm2.repository.id=github -Dm2.repository.url=https://maven.pkg.github.com/unbxd/artifacts generate-maven-artifacts
+             ant clean -Dversion=$SOLR_CURR_VERSION -Dm2.repository.id=github -Dm2.repository.url=https://maven.pkg.github.com/unbxd/artifacts generate-maven-artifacts
           else 
              echo "Deploying Maven artifacts for non-tagged build(snapshots)"
              ant clean -Dm2.repository.id=github -Dm2.repository.url=https://maven.pkg.github.com/unbxd/artifacts generate-maven-artifacts
