@@ -26,11 +26,11 @@ import org.apache.solr.schema.SchemaField;
 
 /** {@link UnInvertedField} implementation of field faceting.
  * It's a top-level term cache. */
-class FacetFieldProcessorByArrayUIF extends FacetFieldProcessorByArray {
+public class FacetFieldProcessorByArrayUIF extends FacetFieldProcessorByArray {
   UnInvertedField uif;
   TermsEnum te;
 
-  FacetFieldProcessorByArrayUIF(FacetContext fcontext, FacetField freq, SchemaField sf) {
+  public FacetFieldProcessorByArrayUIF(FacetContext fcontext, FacetField freq, SchemaField sf) {
     super(fcontext, freq, sf);
   }
 

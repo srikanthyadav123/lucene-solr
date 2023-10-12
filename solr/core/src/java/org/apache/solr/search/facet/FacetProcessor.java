@@ -52,7 +52,7 @@ public abstract class FacetProcessor<FacetRequestT extends FacetRequest>  {
   DocSet filter;  // additional filters specified by "filter"  // TODO: do these need to be on the context to support recomputing during multi-select?
   LinkedHashMap<String,SlotAcc> accMap;
   SlotAcc[] accs;
-  CountSlotAcc countAcc;
+  public CountSlotAcc countAcc;
 
   /** factory method for invoking json facet framework as whole.
    * Note: this is currently only used from SimpleFacets, not from JSON Facet API itself. */

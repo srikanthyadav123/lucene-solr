@@ -59,7 +59,7 @@ public class LegacyFacet {
   }
 
 
-  Map<String,Object> getLegacy() {
+  public Map<String,Object> getLegacy() {
     subFacets = parseSubFacets(params);
     String[] queries = params.getParams(FacetParams.FACET_QUERY);
     if (queries != null) {

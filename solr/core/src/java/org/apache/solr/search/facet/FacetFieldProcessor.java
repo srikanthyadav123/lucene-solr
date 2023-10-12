@@ -42,10 +42,10 @@ import static org.apache.solr.search.facet.FacetContext.SKIP_FACET;
  * Facet processing based on field values. (not range nor by query)
  * @see FacetField
  */
-abstract class FacetFieldProcessor extends FacetProcessor<FacetField> {
+public abstract class FacetFieldProcessor extends FacetProcessor<FacetField> {
   SchemaField sf;
   SlotAcc indexOrderAcc;
-  int effectiveMincount;
+  public int effectiveMincount;
 
   Map<String,AggValueSource> deferredAggs;  // null if none
 
@@ -55,11 +55,11 @@ abstract class FacetFieldProcessor extends FacetProcessor<FacetField> {
   // For sort="x desc", collectAcc would point to "x", and sortAcc would also point to "x".
   // collectAcc would be used to accumulate all buckets, and sortAcc would be used to sort those buckets.
   //
-  SlotAcc collectAcc;  // Accumulator to collect across entire domain (in addition to the countAcc).  May be null.
+  public SlotAcc collectAcc;  // Accumulator to collect across entire domain (in addition to the countAcc).  May be null.
   SlotAcc sortAcc;     // Accumulator to use for sorting *only* (i.e. not used for collection). May be an alias of countAcc, collectAcc, or indexOrderAcc
   SlotAcc[] otherAccs; // Accumulators that do not need to be calculated across all buckets.
 
-  SpecialSlotAcc allBucketsAcc;  // this can internally refer to otherAccs and/or collectAcc. setNextReader should be called on otherAccs directly if they exist.
+  public SpecialSlotAcc allBucketsAcc;  // this can internally refer to otherAccs and/or collectAcc. setNextReader should be called on otherAccs directly if they exist.
 
   FacetFieldProcessor(FacetContext fcontext, FacetField freq, SchemaField sf) {
     super(fcontext, freq);
@@ -438,14 +438,14 @@ abstract class FacetFieldProcessor extends FacetProcessor<FacetField> {
     }
   }
 
-  static class SpecialSlotAcc extends SlotAcc {
+  public static class SpecialSlotAcc extends SlotAcc {
     SlotAcc collectAcc;
     SlotAcc[] otherAccs;
     int collectAccSlot;
     int otherAccsSlot;
     long count;
 
-    SpecialSlotAcc(FacetContext fcontext, SlotAcc collectAcc, int collectAccSlot, SlotAcc[] otherAccs, int otherAccsSlot) {
+    public SpecialSlotAcc(FacetContext fcontext, SlotAcc collectAcc, int collectAccSlot, SlotAcc[] otherAccs, int otherAccsSlot) {
       super(fcontext);
       this.collectAcc = collectAcc;
       this.collectAccSlot = collectAccSlot;

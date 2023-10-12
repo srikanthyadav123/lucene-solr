@@ -33,9 +33,9 @@ import static org.apache.solr.search.facet.FacetContext.SKIP_FACET;
  */
 abstract class FacetFieldProcessorByArray extends FacetFieldProcessor {
   BytesRefBuilder prefixRef;
-  int startTermIndex;
-  int endTermIndex;
-  int nTerms;
+  public int startTermIndex;
+  public int endTermIndex;
+  public int nTerms;
   int nDocs;
   int maxSlots;
 

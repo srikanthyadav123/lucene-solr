@@ -39,7 +39,7 @@ import java.util.List;
  * Sometimes there doesn't need to be a slot distinction, in which case there is just one nominal slot.
  */
 public abstract class SlotAcc implements Closeable {
-  String key; // todo...
+  public String key; // todo...
   protected final FacetContext fcontext;
 
   public SlotAcc(FacetContext fcontext) {
@@ -497,91 +497,3 @@ class StddevSlotAcc extends DoubleFuncSlotAcc {
   }
 }
 
-abstract class CountSlotAcc extends SlotAcc {
-  public CountSlotAcc(FacetContext fcontext) {
-    super(fcontext);
-  }
-
-  public abstract void incrementCount(int slot, int count);
-
-  public abstract int getCount(int slot);
-}
-
-class CountSlotArrAcc extends CountSlotAcc {
-  int[] result;
-
-  public CountSlotArrAcc(FacetContext fcontext, int numSlots) {
-    super(fcontext);
-    result = new int[numSlots];
-  }
-
-  @Override
-  public void collect(int doc, int slotNum) { // TODO: count arrays can use fewer bytes based on the number of docs in
-                                              // the base set (that's the upper bound for single valued) - look at ttf?
-    result[slotNum]++;
-  }
-
-  @Override
-  public int compare(int slotA, int slotB) {
-    return Integer.compare(result[slotA], result[slotB]);
-  }
-
-  @Override
-  public Object getValue(int slotNum) throws IOException {
-    return result[slotNum];
-  }
-
-  public void incrementCount(int slot, int count) {
-    result[slot] += count;
-  }
-
-  public int getCount(int slot) {
-    return result[slot];
-  }
-
-  // internal and expert
-  int[] getCountArray() {
-    return result;
-  }
-
-  @Override
-  public void reset() {
-    Arrays.fill(result, 0);
-  }
-
-  @Override
-  public void resize(Resizer resizer) {
-    resizer.resize(result, 0);
-  }
-}
-
-class SortSlotAcc extends SlotAcc {
-  public SortSlotAcc(FacetContext fcontext) {
-    super(fcontext);
-  }
-
-  @Override
-  public void collect(int doc, int slot) throws IOException {
-    // no-op
-  }
-
-  public int compare(int slotA, int slotB) {
-    return slotA - slotB;
-  }
-
-  @Override
-  public Object getValue(int slotNum) {
-    return slotNum;
-  }
-
-  @Override
-  public void reset() {
-    // no-op
-  }
-
-  @Override
-  public void resize(Resizer resizer) {
-    // sort slot only works with direct-mapped accumulators
-    throw new UnsupportedOperationException();
-  }
-}

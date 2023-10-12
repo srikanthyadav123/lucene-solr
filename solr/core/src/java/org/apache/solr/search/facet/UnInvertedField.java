@@ -521,7 +521,7 @@ public class UnInvertedField extends DocTermOrds {
   }
 
   /** may return a reused BytesRef */
-  BytesRef getTermValue(TermsEnum te, int termNum) throws IOException {
+  public BytesRef getTermValue(TermsEnum te, int termNum) throws IOException {
     //System.out.println("getTermValue termNum=" + termNum + " this=" + this + " numTerms=" + numTermsInField);
     if (bigTerms.size() > 0) {
       // see if the term is one of our big terms.
